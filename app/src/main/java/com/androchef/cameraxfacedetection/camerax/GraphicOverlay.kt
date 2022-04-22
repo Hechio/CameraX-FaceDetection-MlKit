@@ -3,6 +3,7 @@ package com.androchef.cameraxfacedetection.camerax
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
@@ -12,6 +13,22 @@ import kotlin.math.ceil
 
 open class GraphicOverlay(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
+
+    // Matrix for transforming from image coordinates to overlay view coordinates.
+    private val transformationMatrix = Matrix()
+
+    // The factor of overlay View size to image size. Anything in the image coordinates need to be
+    // scaled by this amount to fit with the area of overlay View.
+    private var scaleFactor = 1.0f
+
+    // The number of horizontal pixels needed to be cropped on each side to fit the image with the
+    // area of overlay View after scaling.
+    private var postScaleWidthOffset = 0f
+
+    // The number of vertical pixels needed to be cropped on each side to fit the image with the
+    // area of overlay View after scaling.
+    private var postScaleHeightOffset = 0f
+    private var isImageFlipped = false
 
     private val lock = Any()
     private val graphics: MutableList<Graphic> = ArrayList()
@@ -73,6 +90,37 @@ open class GraphicOverlay(context: Context?, attrs: AttributeSet?) :
                 }
             }
             return mappedBox
+        }
+
+
+        /** Adjusts the supplied value from the image scale to the view scale.  */
+        fun scale(imagePixel: Float): Float {
+            return imagePixel * overlay.scaleFactor
+        }
+
+        /**
+         * Adjusts the x coordinate from the image's coordinate system to the view coordinate system.
+         */
+        fun translateX(x: Float): Float {
+            return if (overlay.isImageFlipped) {
+                overlay.width - (scale(x) - overlay.postScaleWidthOffset)
+            } else {
+                scale(x) - overlay.postScaleWidthOffset
+            }
+        }
+
+        /**
+         * Adjusts the y coordinate from the image's coordinate system to the view coordinate system.
+         */
+        fun translateY(y: Float): Float {
+            return scale(y) - overlay.postScaleHeightOffset
+        }
+
+        /**
+         * Returns a [Matrix] for transforming from image coordinates to overlay view coordinates.
+         */
+        fun getTransformationMatrix(): Matrix {
+            return overlay.transformationMatrix
         }
     }
 

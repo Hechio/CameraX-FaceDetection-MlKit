@@ -11,7 +11,8 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.io.IOException
 
-class FaceContourDetectionProcessor(private val view: GraphicOverlay) :
+class FaceContourDetectionProcessor(private val view: GraphicOverlay,
+                                    private val onSuccessCallback: ((FaceStatus) -> Unit)) :
     BaseImageAnalyzer<List<Face>>() {
 
     private val realTimeOpts = FaceDetectorOptions.Builder()
@@ -42,15 +43,25 @@ class FaceContourDetectionProcessor(private val view: GraphicOverlay) :
         rect: Rect
     ) {
         graphicOverlay.clear()
-        results.forEach {
-            val faceGraphic = FaceContourGraphic(graphicOverlay, it, rect)
-            graphicOverlay.add(faceGraphic)
-        }
-        graphicOverlay.postInvalidate()
+       if (results.isNotEmpty()){
+           results.forEach {
+               val faceGraphic = FaceContourGraphic(graphicOverlay, it, rect
+               ,onSuccessCallback)
+               graphicOverlay.add(faceGraphic)
+           }
+           graphicOverlay.postInvalidate()
+       }else{
+           onSuccessCallback(FaceStatus.NO_FACE)
+           Log.e(TAG, "Face Detector failed.")
+       }
+
     }
 
+
+
     override fun onFailure(e: Exception) {
-        Log.w(TAG, "Face Detector failed.$e")
+        Log.e(TAG, "Face Detector failed. $e")
+        onSuccessCallback(FaceStatus.NO_FACE)
     }
 
     companion object {

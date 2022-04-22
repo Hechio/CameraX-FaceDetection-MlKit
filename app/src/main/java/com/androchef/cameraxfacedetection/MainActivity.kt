@@ -3,10 +3,12 @@ package com.androchef.cameraxfacedetection
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.androchef.cameraxfacedetection.camerax.CameraManager
+import com.androchef.cameraxfacedetection.face_detection.FaceStatus
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -60,8 +62,15 @@ class MainActivity : AppCompatActivity() {
             this,
             previewView_finder,
             this,
-            graphicOverlay_finder
+            graphicOverlay_finder,
+            ::processPicture
         )
+    }
+
+
+    private fun processPicture(faceStatus: FaceStatus) {
+        Log.e("facestatus","This is it ${faceStatus.name}")
+//       when(faceStatus){}
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
